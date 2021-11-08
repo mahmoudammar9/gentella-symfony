@@ -1,0 +1,47 @@
+version: "3"
+
+services:
+  db:
+    image: mysql:8.0.20
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - "/var/lib/db_app/gentella_admin:/var/lib/mysql"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - 3306:3306
+    networks:
+      - gentella
+  php:
+    build:
+      context: ./php
+      args:
+        TIMEZONE: ${TIMEZONE}
+    ports:
+      - 9000:9000
+    volumes:
+      - symfony_docker_app_sync:/var/www/symfony/
+    networks:
+      - gentella
+  nginx:
+    build:
+      context: ./ngnix
+    volumes:
+      - symfony_docker_app_sync:/var/www/symfony/
+    ports:
+      - 8088:80
+    networks:
+      - gentella
+    env_file:
+      - .env.ngnix
+
+volumes:
+  symfony_docker_app_sync:
+    external: true
+  db_app:
+
+networks:
+  gentella:
